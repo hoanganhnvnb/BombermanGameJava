@@ -1,5 +1,6 @@
 package uet.oop.bomberman.graphics;
 
+import javafx.geometry.Rectangle2D;
 import javafx.scene.image.*;
 
 import java.awt.image.BufferedImage;
@@ -286,5 +287,15 @@ public class Sprite {
 		}
 
 		return output;
+	}
+
+	public Rectangle2D getBoundary()
+	{
+		return new Rectangle2D(_x, _y, _realWidth, _realHeight);
+	}
+
+	public boolean intersects(Sprite s)
+	{
+		return s.getBoundary().intersects( this.getBoundary() );
 	}
 }
