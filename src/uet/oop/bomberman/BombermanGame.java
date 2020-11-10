@@ -30,9 +30,15 @@ public class BombermanGame extends Application {
     
     private GraphicsContext gc;
     private Canvas canvas;
-    private List<Entity> entities = new ArrayList<>();
-    private List<Entity> stillObjects = new ArrayList<>();
 
+    // Các đối tượng trong game
+    Bomber bomberman = new Bomber(1, 1, Sprite.player_right.getFxImage());
+    private List<Entity> entities = new ArrayList<>();
+    private List<Entity> grasses = new ArrayList<>();
+    private List<Entity> walls = new ArrayList<>();
+    private List<Entity> bricks = new ArrayList<>();
+    private List<Entity> portals = new ArrayList<>();
+    private List<Balloom> balloms = new ArrayList<>();
 
     public static void main(String[] args) {
         Application.launch(BombermanGame.class);
@@ -41,7 +47,7 @@ public class BombermanGame extends Application {
     @Override
     public void start(Stage stage) {
         // Tao Canvas
-        createMap();
+        createMapByLevel(1);
         canvas = new Canvas(Sprite.SCALED_SIZE * WIDTH, Sprite.SCALED_SIZE * HEIGHT);
         gc = canvas.getGraphicsContext2D();
 
@@ -61,38 +67,80 @@ public class BombermanGame extends Application {
             public void handle(long l) {
                 render();
                 update();
+
+                // Ballom di chuyeb
+                for (Balloom ballom : balloms) {
+                    if (!checkBounds(ballom)) {
+                        ballom.update();
+                        if (checkBounds(ballom)) {
+                            ballom.setSpeed(ballom.getSpeed() * -1);
+                            ballom.update();
+                        }
+                    }
+                }
+
             }
         };
         timer.start();
-
-        Bomber bomberman = new Bomber(1, 1, Sprite.player_right.getFxImage());
         entities.add(bomberman);
 
+        /**
+         * Hanh dong cua bomber
+         */
         scene.setOnKeyPressed(event -> {
             if (event.getCode().toString().equals("RIGHT")) {
-                bomberman.goRight();
+                if (!checkBounds(bomberman)) {
+                    bomberman.goRight();
+                    if (checkBounds(bomberman)) {
+                        bomberman.goLeft();
+                    }
+                }
                 bomberman.setImg(Sprite.movingSprite(Sprite.player_right, Sprite.player_right_1,
-                        Sprite.player_right_2, bomberman.getX(), Sprite.SCALED_SIZE).getFxImage());
+                        Sprite.player_right_2, bomberman.getX(), Sprite.DEFAULT_SIZE).getFxImage());
             } else if (event.getCode().toString().equals("LEFT")) {
-                bomberman.goLeft();
+                if (!checkBounds(bomberman)) {
+                    bomberman.goLeft();
+                    if (checkBounds(bomberman)) {
+                        bomberman.goRight();
+                    }
+                }
                 bomberman.setImg(Sprite.movingSprite(Sprite.player_left, Sprite.player_left_1,
-                        Sprite.player_left_2, bomberman.getX(), Sprite.SCALED_SIZE).getFxImage());
+                        Sprite.player_left_2, bomberman.getX(), Sprite.DEFAULT_SIZE).getFxImage());
             } else if (event.getCode().toString().equals("UP")) {
-                bomberman.goUp();
+                if (!checkBounds(bomberman)) {
+                    bomberman.goUp();
+                    if (checkBounds(bomberman)) {
+                        bomberman.goDown();
+                    }
+                }
                 bomberman.setImg(Sprite.movingSprite(Sprite.player_up, Sprite.player_up_1,
-                        Sprite.player_up_2, bomberman.getY(), Sprite.SCALED_SIZE).getFxImage());
+                        Sprite.player_up_2, bomberman.getY(), Sprite.DEFAULT_SIZE).getFxImage());
             } else if (event.getCode().toString().equals("DOWN")) {
-                bomberman.goDown();
+                if (!checkBounds(bomberman)) {
+                    bomberman.goDown();
+                    if (checkBounds(bomberman)) {
+                        bomberman.goUp();
+                    }
+                }
                 bomberman.setImg(Sprite.movingSprite(Sprite.player_down, Sprite.player_down_1,
-                        Sprite.player_down_2, bomberman.getY(), Sprite.SCALED_SIZE).getFxImage());
+                        Sprite.player_down_2, bomberman.getY(), Sprite.DEFAULT_SIZE).getFxImage());
             }
         });
     }
 
-    public void createMap() {
-        createMapByLevel(1);
+    public boolean checkBounds(Entity entity) {
+        for (Entity e : walls) {
+            if (entity.intersects(e)) return true;
+        }
+
+        for (Entity e : bricks) {
+            if (entity.intersects(e)) return true;
+        }
+        return false;
     }
 
+
+    // Tạo Map
     public void createMapByLevel(int level) {
         try {
             String path = "res/levels/Level" + level + ".txt";
@@ -115,27 +163,31 @@ public class BombermanGame extends Application {
             for (int i = 0; i < WIDTH; ++i) {
                 for (int j = 0 ; j < HEIGHT; ++j) {
                     Entity object;
-                    Entity entity;
+                    Balloom balloom;
+                    // create wall and grass
                     if (j == 0 || j == HEIGHT - 1 || i == 0 || i == WIDTH - 1 || maps[j][i] == '#') {
                         object = new Wall(i, j, Sprite.wall.getFxImage());
-                    } else if (maps[j][i] == 'x') {
-                        object = new Portal(i, j, Sprite.portal.getFxImage());
-                    }
-                    else {
+                        walls.add(object);
+                    } else {
                         object = new Grass(i, j, Sprite.grass.getFxImage());
+                        grasses.add(object);
                     }
-
+                    // create portal
+                    if (maps[j][i] == 'x') {
+                        object = new Portal(i, j, Sprite.portal.getFxImage());
+                        grasses.add(object);
+                    }
+                    // create brick
                     if (maps[j][i] == 'x' || maps[j][i] == '*') {
-                        entity = new Brick(i, j, Sprite.brick.getFxImage());
-                        entities.add(entity);
+                        object = new Brick(i, j, Sprite.brick.getFxImage());
+                        bricks.add(object);
                     } else if (maps[j][i] == '1') {
-                        entity = new Balloom(i, j, Sprite.balloom_left1.getFxImage());
-                        entities.add(entity);
+                        balloom = new Balloom(i, j, Sprite.balloom_left1.getFxImage());
+                        balloms.add(balloom);
                     } else if (maps[j][i] == '2') {
-                        entity = new Oneal(i, j, Sprite.oneal_right1.getFxImage());
-                        entities.add(entity);
+                        object = new Oneal(i, j, Sprite.oneal_right1.getFxImage());
+                        entities.add(object);
                     }
-                    stillObjects.add(object);
                 }
             }
             fileReader.close();
@@ -145,13 +197,19 @@ public class BombermanGame extends Application {
         }
     }
 
+    // update
     public void update() {
         entities.forEach(Entity::update);
     }
-
+    // vẽ
     public void render() {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        stillObjects.forEach(g -> g.render(gc));
+        grasses.forEach(g -> g.render(gc));
+        walls.forEach(g -> g.render(gc));
+        bricks.forEach(g -> g.render(gc));
+        portals.forEach(g -> g.render(gc));
+        balloms.forEach(g -> g.render(gc));
         entities.forEach(g -> g.render(gc));
     }
+
 }

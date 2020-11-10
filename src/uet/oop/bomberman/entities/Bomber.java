@@ -5,10 +5,13 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
+import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.graphics.Sprite;
 
+import java.util.List;
+
 public class Bomber extends Entity {
-    private int speed = Sprite.SCALED_SIZE / 4;
+    private int speed = Sprite.SCALED_SIZE / 8;
 
     public Bomber(int x, int y, Image img) {
         super( x, y, img);

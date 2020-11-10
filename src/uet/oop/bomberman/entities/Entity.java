@@ -1,5 +1,6 @@
 package uet.oop.bomberman.entities;
 
+import javafx.geometry.Rectangle2D;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -50,5 +51,15 @@ public abstract class Entity {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public Rectangle2D getBoundary()
+    {
+        return new Rectangle2D(x, y, Sprite.SCALED_SIZE, Sprite.SCALED_SIZE);
+    }
+
+    public boolean intersects(Entity s)
+    {
+        return s.getBoundary().intersects( this.getBoundary() );
     }
 }

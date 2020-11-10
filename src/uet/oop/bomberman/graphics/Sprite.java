@@ -288,14 +288,4 @@ public class Sprite {
 
 		return output;
 	}
-
-	public Rectangle2D getBoundary()
-	{
-		return new Rectangle2D(_x, _y, _realWidth, _realHeight);
-	}
-
-	public boolean intersects(Sprite s)
-	{
-		return s.getBoundary().intersects( this.getBoundary() );
-	}
 }
