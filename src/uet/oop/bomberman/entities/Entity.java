@@ -6,7 +6,14 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
+import uet.oop.bomberman.BombermanGame;
+import uet.oop.bomberman.entities.blocks.Brick;
+import uet.oop.bomberman.entities.bomb.Flame;
+import uet.oop.bomberman.entities.enemy.Balloom;
+import uet.oop.bomberman.entities.enemy.Oneal;
 import uet.oop.bomberman.graphics.Sprite;
+
+import java.util.List;
 
 public abstract class Entity {
     //Tọa độ X tính từ góc trái trên trong Canvas
@@ -17,11 +24,21 @@ public abstract class Entity {
 
     protected Image img;
 
+    protected int animate;
+
+    // Các mảng đối tượng
+    protected List<Entity> walls = BombermanGame.getWalls();
+    protected List<Brick> bricks = BombermanGame.bricks;
+    protected List<Entity> portals = BombermanGame.getPortals();
+    protected List<Balloom> ballooms = BombermanGame.getBalloms();
+    protected List<Oneal> oneals = BombermanGame.getOneals();
+
     //Khởi tạo đối tượng, chuyển từ tọa độ đơn vị sang tọa độ trong canvas
     public Entity( int xUnit, int yUnit, Image img) {
         this.x = xUnit * Sprite.SCALED_SIZE;
         this.y = yUnit * Sprite.SCALED_SIZE;
         this.img = img;
+        this.animate = this.x;
     }
 
     public void render(GraphicsContext gc) {
@@ -61,5 +78,16 @@ public abstract class Entity {
     public boolean intersects(Entity s)
     {
         return s.getBoundary().intersects( this.getBoundary() );
+    }
+
+    public boolean checkBounds() {
+        for (Entity e : walls) {
+            if (this.intersects(e)) return true;
+        }
+
+        for (Entity e : bricks) {
+            if (this.intersects(e)) return true;
+        }
+        return false;
     }
 }

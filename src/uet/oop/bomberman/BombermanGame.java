@@ -13,6 +13,9 @@ import uet.oop.bomberman.entities.blocks.Brick;
 import uet.oop.bomberman.entities.blocks.Grass;
 import uet.oop.bomberman.entities.blocks.Portal;
 import uet.oop.bomberman.entities.blocks.Wall;
+import uet.oop.bomberman.entities.bomb.Bomb;
+import uet.oop.bomberman.entities.bomb.Flame;
+import uet.oop.bomberman.entities.bomb.FlameV;
 import uet.oop.bomberman.entities.enemy.Balloom;
 import uet.oop.bomberman.entities.enemy.Oneal;
 import uet.oop.bomberman.graphics.Sprite;
@@ -22,6 +25,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class BombermanGame extends Application {
     
@@ -33,12 +38,13 @@ public class BombermanGame extends Application {
 
     // Các đối tượng trong game
     Bomber bomberman = new Bomber(1, 1, Sprite.player_right.getFxImage());
-    private List<Entity> entities = new ArrayList<>();
-    private List<Entity> grasses = new ArrayList<>();
-    private List<Entity> walls = new ArrayList<>();
-    private List<Entity> bricks = new ArrayList<>();
-    private List<Entity> portals = new ArrayList<>();
-    private List<Balloom> balloms = new ArrayList<>();
+    private static List<Entity> entities = new ArrayList<>();
+    private static List<Entity> grasses = new ArrayList<>();
+    private static List<Entity> walls = new ArrayList<>();
+    public static List<Brick> bricks = new ArrayList<>();
+    private static List<Entity> portals = new ArrayList<>();
+    private static List<Balloom> balloms = new ArrayList<>();
+    private static List<Oneal> oneals = new ArrayList<>();
 
     public static void main(String[] args) {
         Application.launch(BombermanGame.class);
@@ -67,18 +73,6 @@ public class BombermanGame extends Application {
             public void handle(long l) {
                 render();
                 update();
-
-                // Ballom di chuyeb
-                for (Balloom ballom : balloms) {
-                    if (!checkBounds(ballom)) {
-                        ballom.update();
-                        if (checkBounds(ballom)) {
-                            ballom.setSpeed(ballom.getSpeed() * -1);
-                            ballom.update();
-                        }
-                    }
-                }
-
             }
         };
         timer.start();
@@ -89,41 +83,37 @@ public class BombermanGame extends Application {
          */
         scene.setOnKeyPressed(event -> {
             if (event.getCode().toString().equals("RIGHT")) {
-                if (!checkBounds(bomberman)) {
                     bomberman.goRight();
-                    if (checkBounds(bomberman)) {
-                        bomberman.goLeft();
-                    }
-                }
-                bomberman.setImg(Sprite.movingSprite(Sprite.player_right, Sprite.player_right_1,
-                        Sprite.player_right_2, bomberman.getX(), Sprite.DEFAULT_SIZE).getFxImage());
             } else if (event.getCode().toString().equals("LEFT")) {
-                if (!checkBounds(bomberman)) {
                     bomberman.goLeft();
-                    if (checkBounds(bomberman)) {
-                        bomberman.goRight();
-                    }
-                }
-                bomberman.setImg(Sprite.movingSprite(Sprite.player_left, Sprite.player_left_1,
-                        Sprite.player_left_2, bomberman.getX(), Sprite.DEFAULT_SIZE).getFxImage());
             } else if (event.getCode().toString().equals("UP")) {
-                if (!checkBounds(bomberman)) {
                     bomberman.goUp();
-                    if (checkBounds(bomberman)) {
-                        bomberman.goDown();
-                    }
-                }
-                bomberman.setImg(Sprite.movingSprite(Sprite.player_up, Sprite.player_up_1,
-                        Sprite.player_up_2, bomberman.getY(), Sprite.DEFAULT_SIZE).getFxImage());
             } else if (event.getCode().toString().equals("DOWN")) {
-                if (!checkBounds(bomberman)) {
                     bomberman.goDown();
-                    if (checkBounds(bomberman)) {
-                        bomberman.goUp();
+            } else if (event.getCode().toString().equals("SPACE")) {
+                Bomb bomb = new Bomb(bomberman.getX() / Sprite.SCALED_SIZE, bomberman.getY() / Sprite.SCALED_SIZE, Sprite.bomb.getFxImage());
+                bomberman.bombs.add(bomb);
+                TimerTask timerTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        bomb.setImg(Sprite.bomb_exploded.getFxImage());
+                        bomb.setExploded(true);
                     }
-                }
-                bomberman.setImg(Sprite.movingSprite(Sprite.player_down, Sprite.player_down_1,
-                        Sprite.player_down_2, bomberman.getY(), Sprite.DEFAULT_SIZE).getFxImage());
+                };
+                TimerTask timerTask1 = new TimerTask() {
+                    @Override
+                    public void run() {
+                        for (Brick b : bricks) {
+                            if (b.isBroken()) bricks.remove(b);
+                        }
+                        bomberman.bombs.remove(bomb);
+                        bomb.removeFlame();
+                    }
+                };
+                Timer timerEx = new Timer();
+                timerEx.schedule(timerTask, 2000);
+                Timer timerRev = new Timer();
+                timerRev.schedule(timerTask1, 3000L);
             }
         });
     }
@@ -162,8 +152,10 @@ public class BombermanGame extends Application {
 
             for (int i = 0; i < WIDTH; ++i) {
                 for (int j = 0 ; j < HEIGHT; ++j) {
+                    Brick brick;
                     Entity object;
                     Balloom balloom;
+                    Oneal oneal;
                     // create wall and grass
                     if (j == 0 || j == HEIGHT - 1 || i == 0 || i == WIDTH - 1 || maps[j][i] == '#') {
                         object = new Wall(i, j, Sprite.wall.getFxImage());
@@ -179,14 +171,14 @@ public class BombermanGame extends Application {
                     }
                     // create brick
                     if (maps[j][i] == 'x' || maps[j][i] == '*') {
-                        object = new Brick(i, j, Sprite.brick.getFxImage());
-                        bricks.add(object);
+                        brick = new Brick(i, j, Sprite.brick.getFxImage());
+                        bricks.add(brick);
                     } else if (maps[j][i] == '1') {
                         balloom = new Balloom(i, j, Sprite.balloom_left1.getFxImage());
                         balloms.add(balloom);
                     } else if (maps[j][i] == '2') {
-                        object = new Oneal(i, j, Sprite.oneal_right1.getFxImage());
-                        entities.add(object);
+                        oneal = new Oneal(i, j, Sprite.oneal_right1.getFxImage());
+                        oneals.add(oneal);
                     }
                 }
             }
@@ -200,6 +192,9 @@ public class BombermanGame extends Application {
     // update
     public void update() {
         entities.forEach(Entity::update);
+        balloms.forEach(Balloom::update);
+        oneals.forEach(Oneal::update);
+        bomberman.bombs.forEach(Bomb::update);
     }
     // vẽ
     public void render() {
@@ -209,7 +204,26 @@ public class BombermanGame extends Application {
         bricks.forEach(g -> g.render(gc));
         portals.forEach(g -> g.render(gc));
         balloms.forEach(g -> g.render(gc));
+        oneals.forEach(g -> g.render(gc));
+        bomberman.bombs.forEach(g -> g.render(gc));
         entities.forEach(g -> g.render(gc));
+        Bomb.flames.forEach(g -> g.render(gc));
+    }
+
+    public static List<Entity> getWalls() {
+        return walls;
+    }
+
+    public static List<Entity> getPortals() {
+        return portals;
+    }
+
+    public static List<Balloom> getBalloms() {
+        return balloms;
+    }
+
+    public static List<Oneal> getOneals() {
+        return oneals;
     }
 
 }
