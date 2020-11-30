@@ -6,27 +6,19 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
-import uet.oop.bomberman.entities.Bomber;
+import uet.oop.bomberman.entities.CreateMap;
 import uet.oop.bomberman.entities.Entity;
+import uet.oop.bomberman.entities.EntityArr;
 import uet.oop.bomberman.entities.blocks.Brick;
-import uet.oop.bomberman.entities.blocks.Grass;
 import uet.oop.bomberman.entities.blocks.Portal;
-import uet.oop.bomberman.entities.blocks.Wall;
 import uet.oop.bomberman.entities.bomb.Bomb;
-import uet.oop.bomberman.entities.bomb.Flame;
-import uet.oop.bomberman.entities.bomb.FlameV;
 import uet.oop.bomberman.entities.enemy.Balloom;
+import uet.oop.bomberman.entities.enemy.Enemy;
 import uet.oop.bomberman.entities.enemy.Oneal;
 import uet.oop.bomberman.graphics.Sprite;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import uet.oop.bomberman.sound.Sound;
 
 public class BombermanGame extends Application {
     
@@ -36,15 +28,11 @@ public class BombermanGame extends Application {
     private GraphicsContext gc;
     private Canvas canvas;
 
-    // Các đối tượng trong game
-    Bomber bomberman = new Bomber(1, 1, Sprite.player_right.getFxImage());
-    private static List<Entity> entities = new ArrayList<>();
-    private static List<Entity> grasses = new ArrayList<>();
-    private static List<Entity> walls = new ArrayList<>();
-    public static List<Brick> bricks = new ArrayList<>();
-    private static List<Entity> portals = new ArrayList<>();
-    private static List<Balloom> balloms = new ArrayList<>();
-    private static List<Oneal> oneals = new ArrayList<>();
+    boolean up, down, left, right;
+
+    public static boolean gameOver = false;
+
+    public static int level = 1;
 
     public static void main(String[] args) {
         Application.launch(BombermanGame.class);
@@ -53,7 +41,7 @@ public class BombermanGame extends Application {
     @Override
     public void start(Stage stage) {
         // Tao Canvas
-        createMapByLevel(1);
+        CreateMap.createMapByLevel(1);
         canvas = new Canvas(Sprite.SCALED_SIZE * WIDTH, Sprite.SCALED_SIZE * HEIGHT);
         gc = canvas.getGraphicsContext2D();
 
@@ -68,162 +56,108 @@ public class BombermanGame extends Application {
         stage.setScene(scene);
         stage.show();
 
+//        Sound.play("soundtrack");
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long l) {
+                if (up) {
+                    EntityArr.bomberman.goUp();
+                }
+                else if (down) {
+                    EntityArr.bomberman.goDown();
+                }
+                else if (left) {
+                    EntityArr.bomberman.goLeft();
+                }
+                else if (right) {
+                    EntityArr.bomberman.goRight();
+                }
                 render();
                 update();
             }
         };
         timer.start();
-        entities.add(bomberman);
+
 
         /**
          * Hanh dong cua bomber
          */
-        scene.setOnKeyPressed(event -> {
-            if (event.getCode().toString().equals("RIGHT")) {
-                    bomberman.goRight();
-            } else if (event.getCode().toString().equals("LEFT")) {
-                    bomberman.goLeft();
-            } else if (event.getCode().toString().equals("UP")) {
-                    bomberman.goUp();
-            } else if (event.getCode().toString().equals("DOWN")) {
-                    bomberman.goDown();
-            } else if (event.getCode().toString().equals("SPACE")) {
-                Bomb bomb = new Bomb(bomberman.getX() / Sprite.SCALED_SIZE, bomberman.getY() / Sprite.SCALED_SIZE, Sprite.bomb.getFxImage());
-                bomberman.bombs.add(bomb);
-                TimerTask timerTask = new TimerTask() {
-                    @Override
-                    public void run() {
-                        bomb.setImg(Sprite.bomb_exploded.getFxImage());
-                        bomb.setExploded(true);
-                    }
-                };
-                TimerTask timerTask1 = new TimerTask() {
-                    @Override
-                    public void run() {
-                        for (Brick b : bricks) {
-                            if (b.isBroken()) bricks.remove(b);
-                        }
-                        bomberman.bombs.remove(bomb);
-                        bomb.removeFlame();
-                    }
-                };
-                Timer timerEx = new Timer();
-                timerEx.schedule(timerTask, 2000);
-                Timer timerRev = new Timer();
-                timerRev.schedule(timerTask1, 3000L);
+        scene.setOnKeyPressed(e -> {
+            switch (e.getCode()) {
+                case UP:
+                    up = true;
+                    break;
+                case DOWN:
+                    down = true;
+                    break;
+                case LEFT:
+                    left = true;
+                    break;
+                case RIGHT:
+                    right = true;
+                    break;
+            }
+            if (e.getCode() == KeyCode.SPACE) {
+                EntityArr.bomberman.putBomb();
+            }
+
+            if (e.getCode() == KeyCode.A) {
+                EntityArr.enemies.clear();
+            }
+        });
+
+        scene.setOnKeyReleased(e -> {
+            switch (e.getCode()) {
+                case UP:
+                    up = false;
+                    break;
+                case DOWN:
+                    down = false;
+                    break;
+                case LEFT:
+                    left = false;
+                    break;
+                case RIGHT:
+                    right = false;
+                    break;
             }
         });
     }
 
-    public boolean checkBounds(Entity entity) {
-        for (Entity e : walls) {
-            if (entity.intersects(e)) return true;
-        }
-
-        for (Entity e : bricks) {
-            if (entity.intersects(e)) return true;
-        }
-        return false;
-    }
-
-
-    // Tạo Map
-    public void createMapByLevel(int level) {
-        try {
-            String path = "res/levels/Level" + level + ".txt";
-            File file = new File(path);
-            FileReader fileReader = new FileReader(file);
-            BufferedReader buffReader = new BufferedReader(fileReader);
-            String line = buffReader.readLine().trim();
-            String[] str = line.split(" ");
-            HEIGHT = Integer.parseInt(str[1]);
-            WIDTH = Integer.parseInt(str[2]);
-            char [][] maps = new char[HEIGHT][WIDTH];
-
-            for (int i = 0; i < HEIGHT; ++i) {
-                line = buffReader.readLine();
-                for (int j = 0; j < WIDTH; ++j) {
-                    maps[i][j] = line.charAt(j);
-                }
-            }
-
-            for (int i = 0; i < WIDTH; ++i) {
-                for (int j = 0 ; j < HEIGHT; ++j) {
-                    Brick brick;
-                    Entity object;
-                    Balloom balloom;
-                    Oneal oneal;
-                    // create wall and grass
-                    if (j == 0 || j == HEIGHT - 1 || i == 0 || i == WIDTH - 1 || maps[j][i] == '#') {
-                        object = new Wall(i, j, Sprite.wall.getFxImage());
-                        walls.add(object);
-                    } else {
-                        object = new Grass(i, j, Sprite.grass.getFxImage());
-                        grasses.add(object);
-                    }
-                    // create portal
-                    if (maps[j][i] == 'x') {
-                        object = new Portal(i, j, Sprite.portal.getFxImage());
-                        grasses.add(object);
-                    }
-                    // create brick
-                    if (maps[j][i] == 'x' || maps[j][i] == '*') {
-                        brick = new Brick(i, j, Sprite.brick.getFxImage());
-                        bricks.add(brick);
-                    } else if (maps[j][i] == '1') {
-                        balloom = new Balloom(i, j, Sprite.balloom_left1.getFxImage());
-                        balloms.add(balloom);
-                    } else if (maps[j][i] == '2') {
-                        oneal = new Oneal(i, j, Sprite.oneal_right1.getFxImage());
-                        oneals.add(oneal);
-                    }
-                }
-            }
-            fileReader.close();
-            buffReader.close();
-        } catch (Exception exception) {
-            System.out.println("Error: " + exception);
-        }
-    }
-
     // update
     public void update() {
-        entities.forEach(Entity::update);
-        balloms.forEach(Balloom::update);
-        oneals.forEach(Oneal::update);
-        bomberman.bombs.forEach(Bomb::update);
+        EntityArr.bomberman.update();
+        EntityArr.enemies.forEach(Enemy::update);
+        EntityArr.bomberman.bombs.forEach(Bomb::update);
+        EntityArr.bricks.forEach(Brick::update);
+        // update flame
+        EntityArr.bomberman.bombs.forEach(g -> g.getfUp().forEach(g1 -> g1.update()));
+        EntityArr.bomberman.bombs.forEach(g -> g.getfDown().forEach(g1 -> g1.update()));
+        EntityArr.bomberman.bombs.forEach(g -> g.getfLeft().forEach(g1 -> g1.update()));
+        EntityArr.bomberman.bombs.forEach(g -> g.getfRight().forEach(g1 -> g1.update()));
+        // Update item
+        EntityArr.items.forEach(g -> {
+            if (g.isVisible()) g.update();
+        });
+        EntityArr.portals.forEach(g -> g.update());
     }
+
     // vẽ
     public void render() {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        grasses.forEach(g -> g.render(gc));
-        walls.forEach(g -> g.render(gc));
-        bricks.forEach(g -> g.render(gc));
-        portals.forEach(g -> g.render(gc));
-        balloms.forEach(g -> g.render(gc));
-        oneals.forEach(g -> g.render(gc));
-        bomberman.bombs.forEach(g -> g.render(gc));
-        entities.forEach(g -> g.render(gc));
-        Bomb.flames.forEach(g -> g.render(gc));
-    }
-
-    public static List<Entity> getWalls() {
-        return walls;
-    }
-
-    public static List<Entity> getPortals() {
-        return portals;
-    }
-
-    public static List<Balloom> getBalloms() {
-        return balloms;
-    }
-
-    public static List<Oneal> getOneals() {
-        return oneals;
+        EntityArr.grasses.forEach(g -> g.render(gc));
+        EntityArr.portals.forEach(g -> g.render(gc));
+        EntityArr.items.forEach(g -> {
+            if (g.isVisible()) g.render(gc);
+        });
+        EntityArr.walls.forEach(g -> g.render(gc));
+        EntityArr.bricks.forEach(g -> g.render(gc));
+        EntityArr.bomberman.bombs.forEach(g -> g.flames.forEach(g1 -> g1.render(gc)));
+        EntityArr.bomberman.bombs.forEach(g -> g.render(gc));
+        EntityArr.enemies.forEach(g -> {
+            if (g.isVisible()) g.render(gc);
+        });
+        EntityArr.bombers.forEach(g -> g.render(gc));
     }
 
 }

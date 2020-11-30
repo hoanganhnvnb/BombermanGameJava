@@ -10,6 +10,5 @@ public class Portal extends Entity {
 
     @Override
     public void update() {
-
     }
 }
