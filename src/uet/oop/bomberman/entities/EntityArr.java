@@ -6,6 +6,7 @@ import uet.oop.bomberman.entities.bomb.Bomb;
 import uet.oop.bomberman.entities.enemy.*;
 import uet.oop.bomberman.entities.item.Item;
 import uet.oop.bomberman.graphics.Sprite;
+import uet.oop.bomberman.sound.Sound;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,10 +38,12 @@ public class EntityArr {
                         ((Pass) enemy).shield = 0;
                         enemy.setAlive(true);
                     } else {
+                        Sound.play("noooooo");
                         BombermanGame.sumPoint += enemy.getPoint();
                         enemyIterator.remove();
                     }
                 } else {
+                    Sound.play("noooooo");
                     BombermanGame.sumPoint += enemy.getPoint();
                     enemyIterator.remove();
                 }

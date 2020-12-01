@@ -235,6 +235,7 @@ public class Bomber extends Entity {
         for (Entity portal : EntityArr.portals) {
             if (EntityArr.enemies.size() != 0) break;
             if (this.intersects(portal)) {
+                Sound.play("CRYST_UP");
                   return true;
             }
         }

@@ -93,7 +93,7 @@ public class BombermanGame extends Application {
 
         long  startTime = System.currentTimeMillis();
         final int[] timeRun = {1};
-//        Sound.play("soundtrack");
+        Sound.play("soundtrack");
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long l) {
@@ -120,6 +120,7 @@ public class BombermanGame extends Application {
                 if (timeRun[0] == TIME || !EntityArr.bomberman.isAlive()) {
                     this.stop();
                     stage.setScene(SceneGame.getSceneEndGame(level, sumPoint, TIME - timeRun[0]));
+                    Sound.play("endgame3");
                 }
             }
         };
