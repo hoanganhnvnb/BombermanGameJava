@@ -6,6 +6,7 @@ import uet.oop.bomberman.graphics.Sprite;
 public class Ovape extends Enemy {
     public Ovape(int xUnit, int yUnit, Image img) {
         super(xUnit, yUnit, img);
+        point = 1000;
     }
 
     @Override

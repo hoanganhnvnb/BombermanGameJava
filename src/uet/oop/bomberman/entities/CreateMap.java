@@ -16,8 +16,6 @@ public class CreateMap {
 
     public static void createMapByLevel(int level) {
         EntityArr.clearArr();
-        EntityArr.bomberman = new Bomber(1, 1, Sprite.player_right.getFxImage());
-        EntityArr.bombers.add(EntityArr.bomberman);
         try {
             String path = "res/levels/Level" + level + ".txt";
             File file = new File(path);
@@ -85,6 +83,9 @@ public class CreateMap {
                     } else if (maps[j][i] == '7') {
                         pass = new Pass(i, j, Sprite.pass_left3.getFxImage());
                         EntityArr.enemies.add(pass);
+                    } else if(maps[j][i] == 'p') {
+                        EntityArr.bomberman.setX(i * Sprite.SCALED_SIZE);
+                        EntityArr.bomberman.setX(j * Sprite.SCALED_SIZE);
                     }
                 }
             }

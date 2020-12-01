@@ -1,9 +1,11 @@
 package uet.oop.bomberman.entities.enemy;
 
+import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import uet.oop.bomberman.entities.Bomber;
 import uet.oop.bomberman.entities.Entity;
 import uet.oop.bomberman.entities.EntityArr;
+import uet.oop.bomberman.entities.bomb.Bomb;
 import uet.oop.bomberman.graphics.Sprite;
 
 import java.util.Random;
@@ -22,6 +24,8 @@ public abstract class Enemy extends Entity {
     protected int speedY = 0;
 
     private boolean isAlive = true;
+
+    protected int point;
 
     public Enemy(int xUnit, int yUnit, Image img) {
         super(xUnit, yUnit, img);
@@ -76,6 +80,15 @@ public abstract class Enemy extends Entity {
         this.speedY = speedY;
     }
 
+    public int getPoint() {
+        return point;
+    }
+
+    @Override
+    public Rectangle2D getBoundary() {
+        return super.getBoundary();
+    }
+
     protected void checkBoundBomber() {
         if (EntityArr.bomberman.intersects(this)) {
             EntityArr.bomberman.setAlive(false);
@@ -127,4 +140,6 @@ public abstract class Enemy extends Entity {
             return 0;
         }
     }
+
+
 }

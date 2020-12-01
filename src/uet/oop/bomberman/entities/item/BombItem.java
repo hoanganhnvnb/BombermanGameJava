@@ -13,7 +13,7 @@ public class BombItem extends Item {
     public void update() {
         super.update();
         if (this.used == 1) {
-            EntityArr.bombers.forEach(g -> g.setNumBombs(g.getNumBombs() + 1));
+            EntityArr.bomberman.setNumBombs(EntityArr.bomberman.getNumBombs() + 1);
             Sound.play("Item1");
         }
     }

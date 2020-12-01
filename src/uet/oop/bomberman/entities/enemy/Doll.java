@@ -9,6 +9,7 @@ import java.util.Random;
 public class Doll extends Enemy {
     public Doll(int xUnit, int yUnit, Image img) {
         super(xUnit, yUnit, img);
+        point = 400;
     }
 
     @Override

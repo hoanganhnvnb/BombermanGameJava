@@ -23,7 +23,7 @@ public class Bomb extends Entity {
 
     public int timerEx = 0;
 
-    public boolean allowedToPassThru = true;
+    public boolean allowedToPassThruBomber = true;
 
     public Bomb(int xUnit, int yUnit, Image img) {
         super(xUnit, yUnit, img);

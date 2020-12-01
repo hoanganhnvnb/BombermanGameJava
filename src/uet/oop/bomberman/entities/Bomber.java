@@ -1,5 +1,6 @@
 package uet.oop.bomberman.entities;
 
+import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.entities.blocks.Brick;
@@ -210,9 +211,9 @@ public class Bomber extends Entity {
             double diffX = this.getX() - e.getX();
             double diffY = this.getY() - e.getY();
             if (!(diffX > -32 && diffX < 32 && diffY > -32 && diffY < 32)) {
-                e.allowedToPassThru = false;
+                e.allowedToPassThruBomber = false;
             }
-            if (e.allowedToPassThru) return false;
+            if (e.allowedToPassThruBomber) return false;
             if (this.intersects(e)) return true;
         }
         return false;
@@ -238,5 +239,10 @@ public class Bomber extends Entity {
             }
         }
         return false;
+    }
+
+    @Override
+    public Rectangle2D getBoundary() {
+        return new Rectangle2D(x, y, 2 * Sprite.SCALED_SIZE / 3, 4 * Sprite.SCALED_SIZE / 5);
     }
 }

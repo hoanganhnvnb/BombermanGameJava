@@ -2,21 +2,19 @@ package uet.oop.bomberman;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import uet.oop.bomberman.entities.CreateMap;
-import uet.oop.bomberman.entities.Entity;
 import uet.oop.bomberman.entities.EntityArr;
 import uet.oop.bomberman.entities.blocks.Brick;
-import uet.oop.bomberman.entities.blocks.Portal;
 import uet.oop.bomberman.entities.bomb.Bomb;
-import uet.oop.bomberman.entities.enemy.Balloom;
 import uet.oop.bomberman.entities.enemy.Enemy;
-import uet.oop.bomberman.entities.enemy.Oneal;
 import uet.oop.bomberman.graphics.Sprite;
 import uet.oop.bomberman.sound.Sound;
 
@@ -32,6 +30,12 @@ public class BombermanGame extends Application {
 
     public static boolean gameOver = false;
 
+    public static boolean nextLevel = false;
+
+    public static int sumPoint = 0;
+
+    public static final int TIME = 500;
+
     public static int level = 1;
 
     public static void main(String[] args) {
@@ -46,20 +50,50 @@ public class BombermanGame extends Application {
         gc = canvas.getGraphicsContext2D();
 
         // Tao root container
-        Group root = new Group();
-        root.getChildren().add(canvas);
+//        Group root = new Group();
+
+        VBox vBox = new VBox();
+        vBox.setPrefSize(Sprite.SCALED_SIZE * WIDTH, Sprite.SCALED_SIZE * (HEIGHT + 1));
+
+        HBox hBox = new HBox();
+        hBox.setPrefSize(WIDTH * Sprite.SCALED_SIZE,  Sprite.SCALED_SIZE);
+
+        Label time = new Label();
+        time.setPrefSize(WIDTH * Sprite.SCALED_SIZE / 2,  Sprite.SCALED_SIZE);
+        time.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-border-color: white" );
+
+        Label point = new Label();
+        point.setPrefSize(WIDTH * Sprite.SCALED_SIZE / 2,  Sprite.SCALED_SIZE);
+        point.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-border-color: white;");
+
+        hBox.getChildren().add(time);
+        hBox.getChildren().add(point);
+
+//        root.getChildren().add(hBox);
+//        root.getChildren().add(canvas);
+
+        vBox.getChildren().add(hBox);
+        vBox.getChildren().add(canvas);
 
         // Tao scene
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(vBox);
 
         // Them scene vao stage
         stage.setScene(scene);
+        stage.setTitle("Bomberman");
         stage.show();
 
+        long  startTime = System.currentTimeMillis();
+        final int[] timeRun = {1};
 //        Sound.play("soundtrack");
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long l) {
+                point.setText("Point : " + sumPoint);
+                time.setText("Time : " + (TIME - timeRun[0]));
+                if((System.currentTimeMillis() - startTime) / timeRun[0] >= 1000) {
+                    timeRun[0]++;
+                }
                 if (up) {
                     EntityArr.bomberman.goUp();
                 }
@@ -74,6 +108,9 @@ public class BombermanGame extends Application {
                 }
                 render();
                 update();
+                if (timeRun[0] == TIME || !EntityArr.bomberman.isAlive()) {
+                    this.stop();
+                }
             }
         };
         timer.start();
@@ -157,7 +194,7 @@ public class BombermanGame extends Application {
         EntityArr.enemies.forEach(g -> {
             if (g.isVisible()) g.render(gc);
         });
-        EntityArr.bombers.forEach(g -> g.render(gc));
+        EntityArr.bomberman.render(gc);
     }
 
 }

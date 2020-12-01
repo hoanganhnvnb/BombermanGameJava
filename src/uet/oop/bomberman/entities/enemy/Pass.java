@@ -5,9 +5,18 @@ import uet.oop.bomberman.entities.EntityArr;
 import uet.oop.bomberman.graphics.Sprite;
 
 public class Pass extends Enemy {
+    public int shield = 1;
     public Pass(int xUnit, int yUnit, Image img) {
         super(xUnit, yUnit, img);
-        setSpeed(3);
+        setSpeed(2);
+        point = 4000;
+    }
+
+    @Override
+    public void update() {
+        super.update();
+        go();
+        choseSprite();
     }
 
     @Override
@@ -30,11 +39,11 @@ public class Pass extends Enemy {
         if (isAlive()) {
             int diffX = Math.abs(getX() - EntityArr.bomberman.getX());
             int diffY = Math.abs(getY() - EntityArr.bomberman.getY());
-            if (this.getSpeedX() == 0) {
-                this.y += this.getSpeedY();
-                if (diffX <= Sprite.SCALED_SIZE * 10 && diffY <= Sprite.SCALED_SIZE * 10 || getY() % Sprite.SCALED_SIZE == 0) {
+            if (getSpeedX() == 0) {
+                this.y += getSpeedY();
+                if (diffX <= Sprite.SCALED_SIZE * 8 && diffY <= Sprite.SCALED_SIZE * 8 || getY() % Sprite.SCALED_SIZE == 0) {
                     if (checkBounds() || checkBomb()) {
-                        this.y -= this.getSpeedY();
+                        this.y -= getSpeedY();
                         if (getY() % Sprite.SCALED_SIZE == 0 && getY() == EntityArr.bomberman.getY()) {
                             choseVector(diffRaw());
                         } else {
@@ -50,7 +59,7 @@ public class Pass extends Enemy {
                 } else
                 if (checkBounds() || checkBomb() || getY() % Sprite.SCALED_SIZE == 0) {
                     if (checkBounds() || checkBomb()) {
-                        this.y -= this.getSpeedY();
+                        this.y -= getSpeedY();
                     }
                     this.randomVector();
                 }
@@ -102,4 +111,5 @@ public class Pass extends Enemy {
                 return diffRaw();
         }
     }
+
 }
