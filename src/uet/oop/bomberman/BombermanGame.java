@@ -18,6 +18,9 @@ import uet.oop.bomberman.entities.enemy.Enemy;
 import uet.oop.bomberman.graphics.Sprite;
 import uet.oop.bomberman.sound.Sound;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class BombermanGame extends Application {
     
     public static int WIDTH = 20;
@@ -29,8 +32,6 @@ public class BombermanGame extends Application {
     boolean up, down, left, right;
 
     public static boolean gameOver = false;
-
-    public static boolean nextLevel = false;
 
     public static int sumPoint = 0;
 
@@ -58,14 +59,19 @@ public class BombermanGame extends Application {
         HBox hBox = new HBox();
         hBox.setPrefSize(WIDTH * Sprite.SCALED_SIZE,  Sprite.SCALED_SIZE);
 
+        Label lv = new Label();
+        lv.setPrefSize(WIDTH * Sprite.SCALED_SIZE / 3,  Sprite.SCALED_SIZE);
+        lv.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-border-color: white" );
+
         Label time = new Label();
-        time.setPrefSize(WIDTH * Sprite.SCALED_SIZE / 2,  Sprite.SCALED_SIZE);
+        time.setPrefSize(WIDTH * Sprite.SCALED_SIZE / 3,  Sprite.SCALED_SIZE);
         time.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-border-color: white" );
 
         Label point = new Label();
-        point.setPrefSize(WIDTH * Sprite.SCALED_SIZE / 2,  Sprite.SCALED_SIZE);
+        point.setPrefSize(WIDTH * Sprite.SCALED_SIZE / 3,  Sprite.SCALED_SIZE);
         point.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-border-color: white;");
 
+        hBox.getChildren().add(lv);
         hBox.getChildren().add(time);
         hBox.getChildren().add(point);
 
@@ -83,6 +89,8 @@ public class BombermanGame extends Application {
         stage.setTitle("Bomberman");
         stage.show();
 
+
+
         long  startTime = System.currentTimeMillis();
         final int[] timeRun = {1};
 //        Sound.play("soundtrack");
@@ -91,6 +99,7 @@ public class BombermanGame extends Application {
             public void handle(long l) {
                 point.setText("Point : " + sumPoint);
                 time.setText("Time : " + (TIME - timeRun[0]));
+                lv.setText("Level: " + level);
                 if((System.currentTimeMillis() - startTime) / timeRun[0] >= 1000) {
                     timeRun[0]++;
                 }
@@ -110,6 +119,7 @@ public class BombermanGame extends Application {
                 update();
                 if (timeRun[0] == TIME || !EntityArr.bomberman.isAlive()) {
                     this.stop();
+                    stage.setScene(SceneGame.getSceneEndGame(level, sumPoint, TIME - timeRun[0]));
                 }
             }
         };
